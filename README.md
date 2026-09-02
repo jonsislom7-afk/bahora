@@ -1,0 +1,2 @@
+# bahora
+bahora uchun platforma
