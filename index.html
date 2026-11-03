@@ -1,370 +1,817 @@
-<!DOCTYPE html>
-
-<html lang="uz">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>❤ Bahora ❤</title>
-
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Samira uchun atirgul</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* Layout: one full-screen particle canvas; DOM only for the small captions, the two top controls and the final name. Single dark look by choice. */
+:root {
+  --bg: #0a0610;
+  --bg-glow: #20102a;
+  --ink: #fbe7ef;
+  --mute: #b79bb0;
+  --rose: #ff4d9a;
+  --gold: #f4c896;
+  --line: rgba(244, 200, 150, 0.45);
+  --display: "Great Vibes", "Snell Roundhand", "Segoe Script", cursive;
+  --pixel: "Press Start 2P", ui-monospace, monospace;
+  --mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
 }
-
+html, body { height: 100%; }
 body {
-    overflow: hidden;
-    background: radial-gradient(circle at center, #18000a, #020008 70%);
-    font-family: Arial, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at 50% 42%, var(--bg-glow) 0%, var(--bg) 62%);
+  color: var(--ink);
+  font-family: var(--mono);
+  overflow: hidden;
 }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
-canvas {
-    position: fixed;
-    inset: 0;
+.bar {
+  position: fixed;
+  top: 0; right: 0;
+  display: flex; gap: 8px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 16px;
+  z-index: 3;
 }
-
-#heart {
-    position: absolute;
-    top: 48%;
-    left: 50%;
-    width: 220px;
-    height: 220px;
-    background: #ff1744;
-    transform: translate(-50%, -50%) rotate(45deg) scale(0);
-    opacity: 0;
-    box-shadow:
-        0 0 20px #ff1744,
-        0 0 50px #ff1744,
-        0 0 100px #ff4081;
-    z-index: 2;
+.pill {
+  font: 700 10px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(10, 6, 16, 0.55);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
 }
+.pill:hover { border-color: var(--gold); }
+.pill:focus-visible, .cta:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+.pill[aria-pressed="true"] { border-color: var(--rose); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mute); }
+.pill[aria-pressed="true"] .dot { background: var(--rose); box-shadow: 0 0 8px var(--rose); }
 
-#heart::before,
-#heart::after {
-    content: "";
-    position: absolute;
-    width: 220px;
-    height: 220px;
-    background: #ff1744;
-    border-radius: 50%;
+.stage-text {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  width: min(92vw, 520px);
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  text-align: center;
+  z-index: 2;
+  transition: opacity 0.7s ease;
 }
-
-#heart::before {
-    top: -110px;
-    left: 0;
+.stage-text[hidden] { display: none !important; }
+.stage-text.off { opacity: 0; pointer-events: none; }
+.cap {
+  margin: 0;
+  font: 700 10px/1.5 var(--mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
 }
-
-#heart::after {
-    top: 0;
-    left: -110px;
+.cta {
+  font: 700 10px/1 var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(244, 150, 90, 0.12);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
+.cta:hover { background: var(--gold); color: var(--bg); }
 
-.show-heart {
-    animation: heartAppear 2s forwards, heartbeat 1.2s infinite 2s;
+#final { gap: 6px; opacity: 0; transition: opacity 1.6s ease; }
+#final.on { opacity: 1; }
+#final .for {
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--mute);
 }
-
-#letter {
-    position: absolute;
-    top: 48%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 110px;
-    font-weight: bold;
-    z-index: 5;
-    opacity: 0;
-    text-shadow:
-        0 0 15px white,
-        0 0 30px #ff4081;
+#final h1 {
+  margin: 0;
+  font: 400 clamp(52px, 11vw, 92px)/1.05 var(--display);
+  color: #ffd3e3;
+  text-shadow: 0 0 18px rgba(255, 77, 154, 0.75), 0 0 46px rgba(255, 77, 154, 0.35);
+  overflow-wrap: anywhere;
 }
+#again { margin-top: 18px; color: var(--mute); border-color: var(--line); background: transparent; }
+#again:hover { background: var(--mute); color: var(--bg); }
 
-.show-letter {
-    animation: letterAppear 1.5s forwards;
+.name-dock {
+  position: fixed;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(180deg, transparent, rgba(10, 6, 16, 0.96) 24%);
 }
-
-#name {
-    position: absolute;
-    width: 100%;
-    bottom: 12%;
-    text-align: center;
-    color: white;
-    font-size: 60px;
-    font-weight: bold;
-    opacity: 0;
-    z-index: 10;
-    text-shadow:
-        0 0 10px #ff1744,
-        0 0 25px #ff1744,
-        0 0 60px #ff4081;
+.picker-title {
+  display: none;
+  margin: 0;
+  color: var(--gold);
+  font: 700 11px/1.6 var(--mono);
+  letter-spacing: 0.12em;
+  text-align: center;
 }
-
-.show-name {
-    animation: nameAppear 2s forwards;
+body:not(.started) .bar,
+body:not(.started) #intro,
+body:not(.started) #final { display: none !important; }
+body:not(.started) .name-dock {
+  top: 50%;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  width: min(92vw, 430px);
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(10, 6, 16, 0.88);
+  box-shadow: 0 0 50px rgba(255, 77, 154, 0.16);
 }
-
-@keyframes heartAppear {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) rotate(45deg) scale(0);
-    }
-
-    70% {
-        opacity: 1;
-        transform: translate(-50%, -50%) rotate(45deg) scale(1.15);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%) rotate(45deg) scale(1);
-    }
+body:not(.started) .picker-title { display: block; }
+body:not(.started) #name-list {
+  justify-content: center;
+  flex-wrap: wrap;
+  overflow: visible;
 }
-
-@keyframes heartbeat {
-    0%, 100% {
-        transform: translate(-50%, -50%) rotate(45deg) scale(1);
-    }
-
-    50% {
-        transform: translate(-50%, -50%) rotate(45deg) scale(1.12);
-    }
+body:not(.started) .name-entry { width: 100%; }
+body:not(.started) .name-entry input { flex: 1; width: auto; }
+body:not(.started) .name-entry button { white-space: nowrap; }
+#name-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: thin;
 }
-
-@keyframes letterAppear {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
+.name-choice {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  font-size: 9px;
 }
-
-@keyframes nameAppear {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.name-entry {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
 }
-
+.name-entry input {
+  width: 112px;
+  min-width: 0;
+  color: var(--ink);
+  background: rgba(10, 6, 16, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font: 10px var(--mono);
+}
+.name-entry input:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+.name-entry button { padding: 7px 10px; }
+#status {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90vw;
+  color: var(--ink);
+  font: 10px/1.5 var(--mono);
+  text-align: center;
+  text-shadow: 0 1px 5px var(--bg);
+}
 @media (max-width: 600px) {
-    #heart {
-        width: 150px;
-        height: 150px;
-    }
-
-    #heart::before,
-    #heart::after {
-        width: 150px;
-        height: 150px;
-    }
-
-    #heart::before {
-        top: -75px;
-    }
-
-    #heart::after {
-        left: -75px;
-    }
-
-    #letter {
-        font-size: 75px;
-    }
-
-    #name {
-        font-size: 38px;
-    }
+  .bar { gap: 5px; padding-left: 8px; }
+  .bar .pill { padding: 8px 9px; font-size: 8px; }
+  .name-dock { flex-wrap: wrap; gap: 6px; padding-top: 12px; }
+  #name-list { flex: 1 1 calc(100% - 60px); }
+  #bahora-prompt { flex: 0 0 auto; }
+  .name-entry { margin-left: 0; }
+  .name-entry input { width: min(42vw, 170px); }
+  #status { bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
 }
 </style>
 
-</head>
+<canvas id="c" aria-label="Samira uchun zarrachalardan yasalgan atirgul"></canvas>
 
-<body>
+<div class="bar">
+  <button class="pill" id="video" type="button">VIDEO YUKLAB OLISH</button>
+  <a class="pill" id="video-download" hidden download>VIDEONI SAQLASH</a>
+  <button class="pill" id="ascii" type="button" aria-pressed="false">ASCII</button>
+  <button class="pill" id="snd" type="button" aria-pressed="false"><span class="dot"></span>OVOZ</button>
+</div>
 
-<canvas id="canvas"></canvas>
+<div class="stage-text" id="intro">
+  <p class="cap" id="cap"></p>
+  <button class="cta" id="open" type="button">Konvertni ochish</button>
+</div>
 
-<div id="heart"></div>
-<div id="letter">B</div>
-<div id="name">❤ Bahora ❤</div>
+<div class="stage-text" id="final" hidden>
+  <span class="for">Sen uchun</span>
+  <h1 id="nm"></h1>
+  <button class="pill" id="again" type="button">Qayta ko'rish</button>
+</div>
+
+<div class="name-dock">
+  <p class="picker-title">Ismingizni kiriting yoki tanlang</p>
+  <button class="pill name-choice" id="bahora-prompt" type="button">Bahoramisiz?</button>
+  <div id="name-list" aria-label="Ismni tanlang"></div>
+  <form class="name-entry" id="name-form">
+    <input id="name-input" type="text" maxlength="18" placeholder="Ismingizni kiriting..." aria-label="Yangi ism">
+    <button class="pill" type="submit">BOSHLASH</button>
+  </form>
+</div>
+<div id="status" role="status" aria-live="polite"></div>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+(() => {
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const $ = id => document.getElementById(id);
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  /* ---------- choose a name before starting the animation ---------- */
+  let NAME = '';
+  let started = false;
+  const names = ['Samira', 'Bahora'];
+  function renderNames() {
+    const list = $('name-list');
+    list.replaceChildren();
+    names.forEach(name => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'pill name-choice';
+      button.textContent = name;
+      button.setAttribute('aria-pressed', String(name === NAME));
+      button.addEventListener('click', () => {
+        if (started) selectName(name);
+        else startWithName(name);
+      });
+      list.append(button);
+    });
+  }
+  function selectName(name) {
+    NAME = name;
+    $('cap').textContent = NAME.toUpperCase() + ', SENGA XAT KELDI';
+    $('nm').textContent = NAME;
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    renderNames();
+    if (mode === 3) applyPoints(namePts());
+  }
+  function startWithName(name) {
+    selectName(name);
+    started = true;
+    document.body.classList.add('started');
+    $('name-form').querySelector('button[type="submit"]').textContent = "QO'SHISH";
+    showEnvelope();
+  }
+  renderNames();
 
-window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
+  /* ---------- sizing ---------- */
+  let W = 0, H = 0, DPR = 1;
+  const N = (Math.min(innerWidth, innerHeight) < 600) ? 6200 : 9000;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.floor(innerWidth); H = Math.floor(innerHeight);
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
 
-let particles = [];
+  /* ---------- particle store ---------- */
+  const F = n => new Float32Array(n);
+  const x = F(N), y = F(N), vx = F(N), vy = F(N), tx = F(N), ty = F(N);
+  const cr = F(N), cg = F(N), cb = F(N), tr = F(N), tg = F(N), tb = F(N);
+  const al = F(N), ta = F(N), sz = F(N), ph = F(N), hh = F(N);
+  const ang = F(N), rad = F(N), spd = F(N), dx = F(N), dy = F(N);
+  const hasT = new Uint8Array(N), chI = new Uint8Array(N);
+  const GL = ['0', '1', '+', '*', ':', '·', '/', '#'];
 
-class Particle {
-    constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
-        this.color = color;
+  /* modes: 0 envelope, 1 burst, 2 vortex, 3 name, 4 rose */
+  let mode = 0, busy = false, asciiOn = false;
+  let sequenceTimers = [];
+  let vcx = 0, vcy = 0, vR = 200;
+  let envRect = null;
+  let pointer = { x: -999, y: -999 };
 
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 7 + 2;
+  const rnd = Math.random;
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-
-        this.life = 100;
-        this.size = Math.random() * 3 + 1;
+  function sample(draw, step, cap) {
+    const o = document.createElement('canvas');
+    o.width = W; o.height = H;
+    const c = o.getContext('2d', { willReadFrequently: true });
+    draw(c);
+    const d = c.getImageData(0, 0, W, H).data;
+    const pts = [];
+    for (let yy = 0; yy < H; yy += step) {
+      for (let xx = 0; xx < W; xx += step) {
+        const i = (yy * W + xx) * 4;
+        if (d[i + 3] > 110) pts.push([xx + (rnd() - 0.5) * step, yy + (rnd() - 0.5) * step, d[i], d[i + 1], d[i + 2], 0]);
+      }
     }
+    shuffle(pts);
+    return pts.length > cap ? pts.slice(0, cap) : pts;
+  }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
+  /* ---------- shapes ---------- */
+  function envelopePts() {
+    const ew = Math.min(W * 0.68, 470), eh = ew * 0.64;
+    const cx = W / 2, cy = Math.min(H * 0.40, H - 220), x0 = cx - ew / 2, y0 = cy - eh / 2;
+    envRect = { x0, y0, ew, eh };
+    return sample(c => {
+      c.lineJoin = 'round'; c.lineCap = 'round';
+      c.strokeStyle = 'rgb(246,204,156)'; c.lineWidth = 3;
+      c.strokeRect(x0, y0, ew, eh);
+      const hy = cy + eh * 0.02;
+      c.beginPath();
+      c.moveTo(x0, y0); c.lineTo(cx, hy); c.lineTo(x0 + ew, y0);
+      c.moveTo(x0, y0 + eh); c.lineTo(cx, hy); c.lineTo(x0 + ew, y0 + eh);
+      c.stroke();
+      c.fillStyle = 'rgba(238,176,128,0.85)';
+      for (let gy = y0 + 8; gy < cy - 4; gy += 9)
+        for (let gx = x0 + 8; gx < x0 + ew - 6; gx += 9) c.fillRect(gx, gy, 2, 2);
+      const hs = ew * 0.05;
+      c.fillStyle = 'rgb(255,130,196)';
+      c.beginPath();
+      c.moveTo(cx, hy + hs);
+      c.bezierCurveTo(cx - hs * 2.2, hy - hs * 0.4, cx - hs * 0.9, hy - hs * 1.7, cx, hy - hs * 0.5);
+      c.bezierCurveTo(cx + hs * 0.9, hy - hs * 1.7, cx + hs * 2.2, hy - hs * 0.4, cx, hy + hs);
+      c.fill();
+      c.fillStyle = '#fff';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.font = `${Math.round(ew * 0.085)}px "Press Start 2P", ui-monospace, monospace`;
+      c.fillText('FOR YOU', cx, cy + eh * 0.27);
+    }, 2, 6500);
+  }
 
-        this.vy += 0.03;
+  function namePts() {
+    return sample(c => {
+      let size = 320;
+      c.font = `${size}px "Great Vibes", "Snell Roundhand", cursive`;
+      const w = c.measureText(NAME).width || 1;
+      size = Math.min(size * (W * 0.84) / w, H * 0.32);
+      c.font = `${size}px "Great Vibes", "Snell Roundhand", cursive`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      const cy = H * 0.46;
+      const g = c.createLinearGradient(0, cy - size * 0.5, 0, cy + size * 0.5);
+      g.addColorStop(0, 'rgb(255,200,218)'); g.addColorStop(1, 'rgb(255,92,150)');
+      c.fillStyle = g;
+      c.fillText(NAME, W / 2, cy);
+    }, 2, 7200);
+  }
 
-        this.vx *= 0.98;
-        this.vy *= 0.98;
-
-        this.life--;
+  let stemBottom = 0;
+  function rosePts() {
+    const S = Math.min(W * 0.22, H * 0.15);
+    const hx = W / 2, hy = H * 0.30;
+    const pts = [];
+    const pink = (u) => {
+      const r = 205 + 50 * u, g = 24 + 90 * u, b = 105 + 80 * u;
+      return rnd() < 0.07 ? [255, 190, 222] : [r, g, b];
+    };
+    // bloom: seven spiralling petal rings
+    for (let k = 0; k < 4900; k++) {
+      const l = (rnd() * 7) | 0, u = Math.pow(l / 6, 0.8);
+      const th = rnd() * Math.PI * 2;
+      const m = 0.86 + 0.14 * Math.cos(5 * th + l * 0.95);
+      const re = S * (0.2 + 0.14 * l) * m;
+      const rr = re * (1 - Math.pow(rnd(), 1.5) * 0.55);
+      const c = pink(u);
+      pts.push([hx + Math.cos(th) * rr, hy + Math.sin(th) * rr * 0.9 + l * S * 0.03, c[0], c[1], c[2], 1]);
     }
-
-    draw() {
-        ctx.beginPath();
-
-        ctx.globalAlpha = this.life / 100;
-        ctx.fillStyle = this.color;
-
-        ctx.arc(
-            this.x,
-            this.y,
-            this.size,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-        ctx.globalAlpha = 1;
+    // stem
+    const sy0 = hy + S * 0.92, sl = S * 2.4;
+    stemBottom = sy0 + sl;
+    for (let k = 0; k < 1000; k++) {
+      const t = rnd();
+      const sx = hx + Math.sin(t * 2.2) * S * 0.07 + (rnd() - 0.5) * S * 0.08;
+      const g = rnd() < 0.2 ? [180, 255, 225] : [50 + rnd() * 40, 205 + rnd() * 40, 150 + rnd() * 30];
+      pts.push([sx, sy0 + t * sl, g[0], g[1], g[2], 1 - t]);
     }
-}
+    // two leaves
+    const leaf = (t, dirx, diry, len, lw) => {
+      const bx = hx + Math.sin(t * 2.2) * S * 0.07, by = sy0 + t * sl;
+      const nx = -diry, ny = dirx;
+      for (let k = 0; k < 560; k++) {
+        const u = rnd(), v = (rnd() < 0.5 ? -1 : 1) * Math.pow(rnd(), 0.6);
+        const w = Math.sin(Math.PI * u) * lw;
+        const g = rnd() < 0.15 ? [190, 255, 232] : [40 + rnd() * 50, 195 + rnd() * 45, 140 + rnd() * 40];
+        pts.push([bx + dirx * u * len + nx * v * w, by + diry * u * len + ny * v * w, g[0], g[1], g[2], 1 - t]);
+      }
+    };
+    leaf(0.42, 0.92, -0.38, S * 1.05, S * 0.2);
+    leaf(0.7, -0.92, -0.3, S * 0.95, S * 0.19);
+    shuffle(pts);
+    return pts.slice(0, 7600);
+  }
 
-function firework() {
-
-    const x =
-        Math.random() * canvas.width * 0.8 +
-        canvas.width * 0.1;
-
-    const y =
-        Math.random() * canvas.height * 0.45 +
-        canvas.height * 0.05;
-
-    const colors = [
-        "#ff1744",
-        "#ffeb3b",
-        "#00e5ff",
-        "#76ff03",
-        "#e040fb",
-        "#ffffff"
-    ];
-
-    const color =
-        colors[Math.floor(Math.random() * colors.length)];
-
-    for (let i = 0; i < 150; i++) {
-        particles.push(
-            new Particle(x, y, color)
-        );
+  function applyPoints(pts) {
+    for (let i = 0; i < N; i++) {
+      if (i < pts.length) {
+        const p = pts[i];
+        hasT[i] = 1; tx[i] = p[0]; ty[i] = p[1];
+        tr[i] = p[2]; tg[i] = p[3]; tb[i] = p[4]; hh[i] = p[5];
+        ta[i] = 0.95; sz[i] = 1.3 + rnd() * 1.3;
+      } else {
+        hasT[i] = 0; tx[i] = dx[i]; ty[i] = dy[i];
+        tr[i] = 255; tg[i] = 214; tb[i] = 232; hh[i] = 0;
+        ta[i] = 0.3; sz[i] = 0.9 + rnd() * 0.9;
+      }
     }
-}
+  }
 
-function animate() {
+  /* ---------- scenes ---------- */
+  function placeText() {
+    const intro = $('intro');
+    if (envRect) intro.style.top = Math.round(envRect.y0 + envRect.eh + 30) + 'px';
+    $('final').style.top = Math.round(Math.max(stemBottom, H * 0.3) + 26) + 'px';
+  }
+  function showEnvelope() {
+    mode = 0; busy = false;
+    applyPoints(envelopePts());
+    placeText();
+    $('intro').hidden = false;
+    requestAnimationFrame(() => $('intro').classList.remove('off'));
+  }
+  function showName() { mode = 3; applyPoints(namePts()); }
+  function showRose() {
+    mode = 4; applyPoints(rosePts()); placeText();
+    chime([523.25, 659.25, 783.99, 1046.5]);
+    const f = $('final'); f.hidden = false;
+    setTimeout(() => f.classList.add('on'), 1400);
+  }
 
-    ctx.fillStyle = "rgba(2,0,8,0.20)";
+  function open() {
+    if (busy) return;
+    sequenceTimers.forEach(clearTimeout);
+    sequenceTimers = [];
+    busy = true;
+    $('intro').classList.add('off');
+    chime([392, 587.33]);
+    // burst out of the envelope
+    mode = 1;
+    for (let i = 0; i < N; i++) {
+      const a = rnd() * Math.PI * 2, s = 2 + Math.pow(rnd(), 2) * 22;
+      vx[i] += Math.cos(a) * s; vy[i] += Math.sin(a) * s;
+      const w = rnd();
+      if (w < 0.62) { tr[i] = 255; tg[i] = 236 + rnd() * 19; tb[i] = 205; }
+      else { tr[i] = 255; tg[i] = 70; tb[i] = 130; }
+      ta[i] = 0.9; sz[i] = 1 + rnd() * 1.5;
+    }
+    sequenceTimers.push(setTimeout(() => {
+      vcx = W / 2; vcy = H * 0.44; vR = Math.min(W * 0.36, 270);
+      for (let i = 0; i < N; i++) {
+        const r = Math.sqrt(rnd());
+        rad[i] = 14 + r * vR; ang[i] = rnd() * Math.PI * 2;
+        spd[i] = 0.35 + 1.5 * (1 - r) * (0.6 + rnd() * 0.4);
+        const k = rnd();
+        tr[i] = 255; tg[i] = 40 + k * 80; tb[i] = 95 + k * 70;
+        hasT[i] = 0;
+      }
+      mode = 2;
+    }, 750));
+    sequenceTimers.push(setTimeout(showName, 750 + 2300));
+    sequenceTimers.push(setTimeout(showRose, 750 + 2300 + 2900));
+  }
 
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+  function again() {
+    sequenceTimers.forEach(clearTimeout);
+    sequenceTimers = [];
+    const f = $('final');
+    f.classList.remove('on');
+    sequenceTimers.push(setTimeout(() => { f.hidden = true; showEnvelope(); }, 700));
+  }
 
-    for (let i = particles.length - 1; i >= 0; i--) {
+  /* ---------- sound (opt-in) ---------- */
+  let ac = null, master = null, soundOn = false;
+  function initAudio() {
+    if (ac) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ac = new AC();
+    master = ac.createGain(); master.gain.value = 0;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500;
+    master.connect(lp); lp.connect(ac.destination);
+    [220, 277.18, 329.63, 415.3, 493.88].forEach((f, i) => {
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.detune.value = (i - 2) * 5;
+      const g = ac.createGain(); g.gain.value = 0.045;
+      const l = ac.createOscillator(); l.frequency.value = 0.06 + i * 0.03;
+      const lg = ac.createGain(); lg.gain.value = 0.03;
+      l.connect(lg); lg.connect(g.gain);
+      o.connect(g); g.connect(master); o.start(); l.start();
+    });
+  }
+  function chime(notes) {
+    if (!soundOn || !ac) return;
+    notes.forEach((f, i) => {
+      const t = ac.currentTime + i * 0.14;
+      const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.12, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 1.9);
+    });
+  }
+  $('snd').addEventListener('click', () => {
+    initAudio();
+    if (!ac) return;
+    soundOn = !soundOn;
+    try { ac.resume(); } catch (e) {}
+    master.gain.setTargetAtTime(soundOn ? 0.9 : 0, ac.currentTime, 0.25);
+    $('snd').setAttribute('aria-pressed', String(soundOn));
+  });
+  $('ascii').addEventListener('click', () => {
+    asciiOn = !asciiOn;
+    $('ascii').setAttribute('aria-pressed', String(asciiOn));
+  });
 
-        const p = particles[i];
+  $('name-form').addEventListener('submit', event => {
+    event.preventDefault();
+    const input = $('name-input');
+    const name = input.value.replace(/[^\p{L}'’ʻ\- ]/gu, '').trim().replace(/\s+/g, ' ').slice(0, 18);
+    if (!name) {
+      $('status').textContent = 'Iltimos, ism kiriting.';
+      input.focus();
+      return;
+    }
+    const normalized = name.charAt(0).toUpperCase() + name.slice(1);
+    if (!names.includes(normalized)) names.push(normalized);
+    input.value = '';
+    if (!started) {
+      startWithName(normalized);
+      $('status').textContent = '';
+    } else {
+      selectName(normalized);
+      $('status').textContent = normalized + ' ro‘yxatga qo‘shildi.';
+    }
+  });
+  $('bahora-prompt').addEventListener('click', () => {
+    if (started) selectName('Bahora');
+    else startWithName('Bahora');
+  });
 
-        p.update();
-        p.draw();
-
-        if (p.life <= 0) {
-            particles.splice(i, 1);
+  /* ---------- video export (canvas animation plus its text overlays) ---------- */
+  let videoTimers = [];
+  let videoUrl = '';
+  let videoBlob = null;
+  let videoFileName = '';
+  $('video-download').addEventListener('click', event => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isIOS || !videoBlob || typeof File === 'undefined' ||
+        typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return;
+    const file = new File([videoBlob], videoFileName, { type: videoBlob.type });
+    if (!navigator.canShare({ files: [file] })) return;
+    event.preventDefault();
+    navigator.share({ files: [file], title: NAME + ' uchun atirgul' })
+      .then(() => { $('status').textContent = 'Ulashish oynasidan “Videoni saqlash”ni tanlang.'; })
+      .catch(error => {
+        if (error.name !== 'AbortError') {
+          $('status').textContent = 'Video ulashilmadi. Tugmani yana bosib ko‘ring.';
         }
+      });
+  });
+  $('video').addEventListener('click', () => {
+    const status = $('status');
+    $('video-download').hidden = true;
+    if (videoUrl) {
+      URL.revokeObjectURL(videoUrl);
+      videoUrl = '';
     }
-
-    requestAnimationFrame(animate);
-}
-
-animate();
-
-/* 🎆 SALYUTLAR */
-
-let fireworksCount = 0;
-
-const fireworks = setInterval(() => {
-
-    firework();
-
-    fireworksCount++;
-
-    if (fireworksCount >= 8) {
-        clearInterval(fireworks);
+    videoBlob = null;
+    if (!started) {
+      status.textContent = 'Avval ism kiriting yoki tanlang.';
+      $('name-input').focus();
+      return;
     }
+    if (!window.MediaRecorder || !cv.captureStream) {
+      status.textContent = 'Bu brauzer video yozishni qo‘llamaydi. Chrome, Firefox yoki Safari’ni yangilang.';
+      return;
+    }
+    const output = document.createElement('canvas');
+    output.width = cv.width;
+    output.height = cv.height;
+    const out = output.getContext('2d');
+    out.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const stream = output.captureStream(30);
+    const mimeType = ['video/mp4;codecs=avc1.42E01E', 'video/mp4',
+      'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+      .find(type => MediaRecorder.isTypeSupported(type));
+    let recorder;
+    try {
+      recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    } catch (error) {
+      stream.getTracks().forEach(track => track.stop());
+      status.textContent = 'Video yozishni boshlash imkoni bo‘lmadi.';
+      return;
+    }
+    const paint = () => {
+      const gradient = out.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, Math.max(W, H) * 0.7);
+      gradient.addColorStop(0, '#20102a');
+      gradient.addColorStop(1, '#0a0610');
+      out.fillStyle = gradient;
+      out.fillRect(0, 0, W, H);
+      out.drawImage(cv, 0, 0, W, H);
+      out.globalAlpha = 1;
+      if (!$('intro').hidden && !$('intro').classList.contains('off')) {
+        const introTop = parseFloat($('intro').style.top) || H * 0.6;
+        out.textAlign = 'center';
+        out.fillStyle = '#f4c896';
+        out.font = '700 10px "Space Mono", monospace';
+        out.fillText($('cap').textContent, W / 2, introTop + 8);
+        out.strokeStyle = '#f4c896';
+        out.lineWidth = 1;
+        out.strokeRect(W / 2 - 88, introTop + 24, 176, 36);
+        out.fillText('KONVERTNI OCHISH', W / 2, introTop + 46);
+      }
+      if (!$('final').hidden && $('final').classList.contains('on')) {
+        const finalTop = parseFloat($('final').style.top) || H * 0.8;
+        out.textAlign = 'center';
+        out.fillStyle = '#b79bb0';
+        out.font = '11px "Space Mono", monospace';
+        out.fillText('SEN UCHUN', W / 2, finalTop + 12);
+        out.fillStyle = '#ffd3e3';
+        out.shadowColor = 'rgba(255,77,154,.75)';
+        out.shadowBlur = 18;
+        out.font = '72px "Great Vibes", cursive';
+        out.fillText(NAME, W / 2, finalTop + 96);
+        out.shadowBlur = 0;
+      }
+    };
+    const renderTimer = setInterval(paint, 1000 / 30);
+    const chunks = [];
+    recorder.addEventListener('dataavailable', event => {
+      if (event.data.size) chunks.push(event.data);
+    });
+    recorder.addEventListener('stop', () => {
+      clearInterval(renderTimer);
+      videoTimers.forEach(clearTimeout);
+      videoTimers = [];
+      stream.getTracks().forEach(track => track.stop());
+      $('video').disabled = false;
+      $('video').textContent = 'VIDEO YUKLAB OLISH';
+      const type = recorder.mimeType || mimeType || 'video/webm';
+      const blob = new Blob(chunks, { type });
+      if (!blob.size) {
+        status.textContent = 'Video faylini yaratib bo‘lmadi.';
+        return;
+      }
+      videoBlob = blob;
+      videoUrl = URL.createObjectURL(blob);
+      const extension = type.toLowerCase().includes('mp4') ? 'mp4' : 'webm';
+      const link = $('video-download');
+      link.href = videoUrl;
+      videoFileName = NAME.toLowerCase().replace(/[^\p{L}\d-]+/gu, '-') + '-atirgul.' + extension;
+      link.download = videoFileName;
+      link.hidden = false;
+      const format = extension.toUpperCase();
+      status.textContent = 'Video tayyor (' + format + '). “VIDEONI SAQLASH”ni bosing; iPhone’da ulashish oynasidan “Videoni saqlash”ni tanlang.';
+    });
+    recorder.addEventListener('error', () => {
+      clearInterval(renderTimer);
+      videoTimers.forEach(clearTimeout);
+      videoTimers = [];
+      stream.getTracks().forEach(track => track.stop());
+      $('video').disabled = false;
+      $('video').textContent = 'VIDEO YUKLAB OLISH';
+      status.textContent = 'Video yozish vaqtida xatolik yuz berdi.';
+    });
+    sequenceTimers.forEach(clearTimeout);
+    sequenceTimers = [];
+    $('final').classList.remove('on');
+    $('final').hidden = true;
+    showEnvelope();
+    $('video').disabled = true;
+    $('video').textContent = 'VIDEO YOZILMOQDA...';
+    status.textContent = 'Animatsiya yozilmoqda, video tayyor bo‘lgach yuklanadi.';
+    recorder.start();
+    videoTimers = [
+      setTimeout(open, 1200),
+      setTimeout(() => {
+        if (recorder.state === 'recording') recorder.stop();
+      }, 11000)
+    ];
+  });
+  addEventListener('pagehide', () => {
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+  });
 
-}, 650);
+  /* ---------- input ---------- */
+  addEventListener('pointermove', e => {
+    if (e.pointerType === 'mouse') { pointer.x = e.clientX; pointer.y = e.clientY; }
+  });
+  addEventListener('pointerleave', () => { pointer.x = pointer.y = -999; });
+  cv.addEventListener('pointerdown', e => {
+    if (mode === 0 && envRect &&
+        e.clientX > envRect.x0 && e.clientX < envRect.x0 + envRect.ew &&
+        e.clientY > envRect.y0 && e.clientY < envRect.y0 + envRect.eh) open();
+  });
+  $('open').addEventListener('click', open);
+  $('again').addEventListener('click', again);
+  let rt = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      resize();
+      for (let i = 0; i < N; i++) { dx[i] = rnd() * W; dy[i] = rnd() * H; }
+      if (started && mode === 0) showEnvelope();
+      else if (mode === 3) applyPoints(namePts());
+      else if (mode === 4) { applyPoints(rosePts()); placeText(); }
+    }, 180);
+  });
 
+  /* ---------- loop ---------- */
+  let last = performance.now(), time = 0;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function frame(now) {
+    const dt = Math.min(0.04, (now - last) / 1000); last = now; time += dt;
+    const f = dt * 60;
+    const R = 62, R2 = R * R;
 
-/* ❤️ YURAK PAYDO BO'LADI */
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,0.34)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+    if (asciiOn) { ctx.font = '11px "Space Mono", ui-monospace, monospace'; ctx.textBaseline = 'top'; }
 
-setTimeout(() => {
+    const jit = reduce ? 0 : 1;
+    for (let i = 0; i < N; i++) {
+      let k = 0, damp = 0.9, ttx = 0, tty = 0;
+      if (mode === 1) { damp = 0.962; }
+      else if (mode === 2) {
+        const a = ang[i] + time * spd[i];
+        const rr = rad[i] * (1 + 0.05 * Math.sin(time * 2 + ph[i]));
+        ttx = vcx + Math.cos(a) * rr; tty = vcy + Math.sin(a) * rr * 0.42;
+        k = 0.026; damp = 0.9;
+      } else if (hasT[i]) {
+        ttx = tx[i] + Math.sin(time * 2.2 + ph[i]) * 0.8 * jit;
+        tty = ty[i] + Math.cos(time * 1.9 + ph[i]) * 0.8 * jit;
+        if (mode === 4) ttx += Math.sin(time * 1.1) * 4 * hh[i] * jit;
+        k = 0.042; damp = 0.87;
+      } else {
+        ttx = tx[i] + Math.sin(time * 0.25 + ph[i]) * 14 * jit;
+        tty = ty[i] + Math.cos(time * 0.22 + ph[i]) * 14 * jit;
+        k = 0.0035; damp = 0.95;
+      }
+      if (k) { vx[i] += (ttx - x[i]) * k * f; vy[i] += (tty - y[i]) * k * f; }
 
-    document
-        .getElementById("heart")
-        .classList
-        .add("show-heart");
+      const ddx = x[i] - pointer.x, ddy = y[i] - pointer.y, d2 = ddx * ddx + ddy * ddy;
+      if (d2 < R2 && d2 > 0.01) {
+        const d = Math.sqrt(d2), s = (1 - d / R) * 2.1 * f;
+        vx[i] += ddx / d * s; vy[i] += ddy / d * s;
+      }
+      vx[i] *= damp; vy[i] *= damp;
+      x[i] += vx[i] * f; y[i] += vy[i] * f;
 
-}, 5500);
+      cr[i] += (tr[i] - cr[i]) * 0.06; cg[i] += (tg[i] - cg[i]) * 0.06; cb[i] += (tb[i] - cb[i]) * 0.06;
+      al[i] += (ta[i] - al[i]) * 0.06;
 
+      let a = al[i];
+      if (!hasT[i] && mode !== 1 && mode !== 2) a *= 0.55 + 0.45 * Math.sin(time * 1.6 + ph[i] * 3);
+      if (a < 0.02) continue;
+      ctx.globalAlpha = a;
+      ctx.fillStyle = 'rgb(' + (cr[i] | 0) + ',' + (cg[i] | 0) + ',' + (cb[i] | 0) + ')';
+      if (asciiOn) { if (i & 1) continue; ctx.fillText(GL[chI[i]], x[i], y[i]); }
+      else ctx.fillRect(x[i], y[i], sz[i], sz[i]);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
 
-/* 🔤 B HARFI */
-
-setTimeout(() => {
-
-    document
-        .getElementById("letter")
-        .classList
-        .add("show-letter");
-
-}, 6500);
-
-
-/* ❤ BAHORA ❤ */
-
-setTimeout(() => {
-
-    document
-        .getElementById("name")
-        .classList
-        .add("show-name");
-
-}, 8000);
-
+  /* ---------- boot ---------- */
+  function boot() {
+    resize();
+    for (let i = 0; i < N; i++) {
+      dx[i] = rnd() * W; dy[i] = rnd() * H;
+      x[i] = rnd() * W; y[i] = rnd() * H;
+      cr[i] = 255; cg[i] = 214; cb[i] = 232;
+      ph[i] = rnd() * 6.283; chI[i] = (rnd() * GL.length) | 0;
+    }
+    requestAnimationFrame(t => { last = t; frame(t); });
+  }
+  const fonts = Promise.all([
+    document.fonts.load('64px "Great Vibes"'),
+    document.fonts.load('20px "Press Start 2P"'),
+    document.fonts.load('12px "Space Mono"')
+  ]).catch(() => {});
+  Promise.race([fonts, new Promise(r => setTimeout(r, 2500))]).then(boot);
+})();
 </script>
 
-</body>
-</html>
+</body></html>
